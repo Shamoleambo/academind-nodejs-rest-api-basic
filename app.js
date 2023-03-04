@@ -19,6 +19,12 @@ app.use((req, res, next) => {
 
 app.use('/feed', feedRoutes)
 
-app.listen(8080, () => {
-  console.log('Your app is running on port 3000')
-})
+mongoose
+  .connect(process.env.URI_MONGO_DB)
+  .then(() => {
+    console.log('Connected to the database')
+    app.listen(8080, () => {
+      console.log('Your app is running on port 8080')
+    })
+  })
+  .catch(err => console.log(err))
