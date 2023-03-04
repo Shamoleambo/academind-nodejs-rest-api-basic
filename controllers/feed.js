@@ -1,8 +1,8 @@
-exports.getFeed = (req, res, next) => {
-  res.status(200).json({ message: 'Olá Tiago!' })
+exports.getPosts = (req, res, next) => {
+  res.status(200).json()
 }
 
-exports.postPost = (req, res, next) => {
+exports.createPost = (req, res, next) => {
   const [title, content] = [req.body.title, req.body.content]
 
   res
