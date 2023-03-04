@@ -1,6 +1,10 @@
 const express = require('express')
+const mongoose = require('mongoose')
+const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
 const feedRoutes = require('./routes/feed')
+
+dotenv.config()
 
 const app = express()
 
