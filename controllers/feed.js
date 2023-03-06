@@ -15,14 +15,22 @@ exports.getPosts = (req, res, next) => {
 }
 
 exports.createPost = (req, res, next) => {
-  const { title, content } = { ...req.body }
   const errors = validationResult(req)
-
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed')
     error.statusCode = 422
     throw error
   }
+
+  if (!req.file) {
+    const error = new Error('No image provided')
+    error.statusCode = 422
+    throw error
+  }
+
+  const title = req.body.title
+  const content = req.body.content
+  const imageUrl = req.file.path.replace('\\', '/')
 
   const post = new Post({
     title,
@@ -30,13 +38,12 @@ exports.createPost = (req, res, next) => {
     creator: {
       name: 'Manolo'
     },
-    imageUrl: 'images/pepe.jpg'
+    imageUrl
   })
 
   post
     .save()
     .then(result => {
-      console.log(result)
       res.status(201).json({ message: 'Post created!', post: result })
     })
     .catch(err => {
