@@ -123,8 +123,7 @@ exports.updatePost = (req, res, next) => {
       res.status(200).json({ message: 'Post updated', post: result })
     })
     .catch(err => {
-      const error = new Error(err)
-      error.statusCode = 500
-      next(error)
+      if (!err.statusCode) err.statusCode = 500
+      next(err)
     })
 }
