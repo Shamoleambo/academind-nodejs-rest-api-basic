@@ -7,8 +7,8 @@ router.get('/posts', feedController.getPosts)
 router.post(
   '/post',
   [
-    body('title').trim().isLength({ min: 5 }).withMessage('Title must have at least 5 characters'),
-    body('content').trim().isLength({ min: 5 }).withMessage('Content must have at least five characters')
+    body('title').trim().isLength({ min: 4 }).withMessage('Title must have at least 4 characters'),
+    body('content').trim().isLength({ min: 4 }).withMessage('Content must have at least 4 characters')
   ],
   feedController.createPost
 )
