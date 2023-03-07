@@ -107,7 +107,7 @@ exports.updatePost = (req, res, next) => {
     .then(post => {
       if (!post) {
         const error = new Error('No post found.')
-        error.statusCode = 422
+        error.statusCode = 404
         throw error
       }
 
@@ -121,6 +121,30 @@ exports.updatePost = (req, res, next) => {
     })
     .then(result => {
       res.status(200).json({ message: 'Post updated', post: result })
+    })
+    .catch(err => {
+      if (!err.statusCode) err.statusCode = 500
+      next(err)
+    })
+}
+
+exports.deletePost = (req, res, next) => {
+  const postId = req.params.postId
+
+  Post.findById(postId)
+    .then(post => {
+      if (!post) {
+        const error = new Error('No post found')
+        error.statusCode = 404
+        throw error
+      }
+
+      clearImage(post.imageUrl)
+      return Post.findByIdAndRemove(postId)
+    })
+    .then(result => {
+      console.log('Post deleted\n', result)
+      res.status(200).json({ message: 'Post deleted', post: result })
     })
     .catch(err => {
       if (!err.statusCode) err.statusCode = 500
