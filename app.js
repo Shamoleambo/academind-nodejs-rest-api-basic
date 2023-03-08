@@ -58,8 +58,13 @@ mongoose
   .connect(process.env.URI_MONGO_DB)
   .then(() => {
     console.log('Connected to the database')
-    app.listen(8080, () => {
+    const server = app.listen(8080, () => {
       console.log('Your app is running on port 8080')
+    })
+
+    const io = require('socket.io')(server)
+    io.on('connection', socket => {
+      console.log('Client connected')
     })
   })
   .catch(err => console.log(err))
