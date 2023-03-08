@@ -87,7 +87,7 @@ exports.getPost = async (req, res, next) => {
   }
 }
 
-exports.updatePost = (req, res, next) => {
+exports.updatePost = async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed.')
@@ -110,33 +110,31 @@ exports.updatePost = (req, res, next) => {
     throw error
   }
 
-  Post.findById(postId)
-    .then(post => {
-      if (!post) {
-        const error = new Error('No post found.')
-        error.statusCode = 404
-        throw error
-      }
-      if (post.creator.toString() !== req.userId.toString()) {
-        const error = new Error('Not authorized')
-        error.statusCode = 403
-        throw error
-      }
-      if (imageUrl !== post.imageUrl) clearImage(post.imageUrl)
+  try {
+    const post = await Post.findById(postId)
+    if (!post) {
+      const error = new Error('No post found.')
+      error.statusCode = 404
+      throw error
+    }
+    if (post.creator.toString() !== req.userId.toString()) {
+      const error = new Error('Not authorized')
+      error.statusCode = 403
+      throw error
+    }
+    if (imageUrl !== post.imageUrl) clearImage(post.imageUrl)
 
-      post.title = title
-      post.content = content
-      post.imageUrl = imageUrl
+    post.title = title
+    post.content = content
+    post.imageUrl = imageUrl
 
-      return post.save()
-    })
-    .then(result => {
-      res.status(200).json({ message: 'Post updated', post: result })
-    })
-    .catch(err => {
-      if (!err.statusCode) err.statusCode = 500
-      next(err)
-    })
+    await post.save()
+
+    res.status(200).json({ message: 'Post updated', post })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
 }
 
 exports.deletePost = (req, res, next) => {
