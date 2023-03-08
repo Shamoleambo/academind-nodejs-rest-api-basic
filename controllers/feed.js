@@ -169,23 +169,22 @@ exports.deletePost = async (req, res, next) => {
   }
 }
 
-exports.getStatus = (req, res, next) => {
-  User.findById(req.userId)
-    .then(user => {
-      if (!user) {
-        const error = new Error('User not found')
-        error.statusCode = 404
-        throw error
-      }
-      return user.status
-    })
-    .then(status => {
-      res.status(200).json({ message: 'Status successfully retrieved', status })
-    })
-    .catch(error => {
-      if (!error.statusCode) error.statusCode = 500
-      next(error)
-    })
+exports.getStatus = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId)
+    if (!user) {
+      const error = new Error('User not found')
+      error.statusCode = 404
+      throw error
+    }
+
+    res
+      .status(200)
+      .json({ message: 'Status successfully retrieved', status: user.status })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
 }
 
 exports.updateStatus = (req, res, next) => {
