@@ -37,5 +37,15 @@ router.put(
   feedController.updatePost
 )
 router.delete('/post/:postId', isAuth, feedController.deletePost)
+router.put(
+  '/status',
+  isAuth,
+  body('status')
+    .trim()
+    .not()
+    .isEmpty()
+    .withMessage('Your Status field cannot be empty'),
+  feedController.updateStatus
+)
 
 module.exports = router
