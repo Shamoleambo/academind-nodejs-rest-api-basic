@@ -194,6 +194,11 @@ exports.deletePost = (req, res, next) => {
 exports.getStatus = (req, res, next) => {
   User.findById(req.userId)
     .then(user => {
+      if (!user) {
+        const error = new Error('User not found')
+        error.statusCode = 404
+        throw error
+      }
       return user.status
     })
     .then(status => {
@@ -218,6 +223,11 @@ exports.updateStatus = (req, res, next) => {
 
   User.findById(req.userId)
     .then(user => {
+      if (!user) {
+        const error = new Error('User not found')
+        error.statusCode = 404
+        throw error
+      }
       user.status = status
       return user.save()
     })
