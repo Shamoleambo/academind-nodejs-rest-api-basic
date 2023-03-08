@@ -137,40 +137,36 @@ exports.updatePost = async (req, res, next) => {
   }
 }
 
-exports.deletePost = (req, res, next) => {
+exports.deletePost = async (req, res, next) => {
   const postId = req.params.postId
 
-  Post.findById(postId)
-    .then(post => {
-      if (!post) {
-        const error = new Error('No post found')
-        error.statusCode = 404
-        throw error
-      }
-      if (post.creator.toString() !== req.userId.toString()) {
-        const error = new Error('Not authorized')
-        error.statusCode = 403
-        throw error
-      }
+  try {
+    const post = await Post.findById(postId)
+    if (!post) {
+      const error = new Error('No post found')
+      error.statusCode = 404
+      throw error
+    }
+    if (post.creator.toString() !== req.userId.toString()) {
+      const error = new Error('Not authorized')
+      error.statusCode = 403
+      throw error
+    }
 
-      clearImage(post.imageUrl)
-      return Post.findByIdAndRemove(postId)
-    })
-    .then(() => {
-      return User.findById(req.userId)
-    })
-    .then(user => {
-      user.posts.pull(postId)
-      return user.save()
-    })
-    .then(result => {
-      console.log('Post deleted\n', result)
-      res.status(200).json({ message: 'Post deleted', post: result })
-    })
-    .catch(err => {
-      if (!err.statusCode) err.statusCode = 500
-      next(err)
-    })
+    clearImage(post.imageUrl)
+
+    await Post.findByIdAndRemove(postId)
+
+    const user = await User.findById(req.userId)
+    user.posts.pull(postId)
+    await user.save()
+
+    console.log('Post deleted\n')
+    res.status(200).json({ message: 'Post deleted', post })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
 }
 
 exports.getStatus = (req, res, next) => {
