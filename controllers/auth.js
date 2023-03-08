@@ -31,41 +31,36 @@ exports.signup = (req, res, next) => {
     })
 }
 
-exports.login = (req, res, next) => {
+exports.login = async (req, res, next) => {
   const { email, password } = { ...req.body }
-  let loadedUser
 
-  User.findOne({ email })
-    .then(user => {
-      if (!user) {
-        const error = new Error('No user with such email')
-        error.statusCode = 401
-        throw error
-      }
+  try {
+    const user = await User.findOne({ email })
+    if (!user) {
+      const error = new Error('No user with such email')
+      error.statusCode = 401
+      throw error
+    }
 
-      loadedUser = user
-      return bcrypt.compare(password, user.password)
-    })
-    .then(isEqual => {
-      if (!isEqual) {
-        const error = new Error('Wrong password')
-        error.statusCode = 401
-        throw error
-      }
+    const passwordsMatch = await bcrypt.compare(password, user.password)
+    if (!passwordsMatch) {
+      const error = new Error('Wrong password')
+      error.statusCode = 401
+      throw error
+    }
 
-      const token = jwt.sign(
-        {
-          email: loadedUser.email,
-          userId: loadedUser._id.toString()
-        },
-        `${process.env.JWT_SECRET}`,
-        { expiresIn: '1h' }
-      )
+    const token = jwt.sign(
+      {
+        email: user.email,
+        userId: user._id.toString()
+      },
+      `${process.env.JWT_SECRET}`,
+      { expiresIn: '1h' }
+    )
 
-      res.status(200).json({ token, userId: loadedUser._id.toString() })
-    })
-    .catch(err => {
-      if (!err.statusCode) err.statusCode = 500
-      next(err)
-    })
+    res.status(200).json({ token, userId: user._id.toString() })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
 }
