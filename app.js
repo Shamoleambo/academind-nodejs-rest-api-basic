@@ -62,7 +62,12 @@ mongoose
       console.log('Your app is running on port 8080')
     })
 
-    const io = require('socket.io')(server)
+    const io = require('socket.io')(server, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+      }
+    })
     io.on('connection', socket => {
       console.log('Client connected')
     })
