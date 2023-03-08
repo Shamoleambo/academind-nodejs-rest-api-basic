@@ -195,6 +195,7 @@ exports.updateStatus = (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     const error = new Error('Invalid status field')
+    error.data = errors.array()
     error.statusCode = 422
     throw error
   }
