@@ -25,7 +25,7 @@ exports.getPosts = async (req, res, next) => {
   }
 }
 
-exports.createPost = (req, res, next) => {
+exports.createPost = async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed')
@@ -51,29 +51,22 @@ exports.createPost = (req, res, next) => {
     imageUrl
   })
 
-  post
-    .save()
-    .then(() => {
-      return User.findById(req.userId)
+  try {
+    await post.save()
+
+    const user = await User.findById(req.userId)
+    user.posts.push(post)
+    await user.save()
+
+    res.status(201).json({
+      message: 'Post created!',
+      post,
+      creator: { _id: user._id, name: user.name }
     })
-    .then(user => {
-      creator = user
-      user.posts.push(post)
-      return user.save()
-    })
-    .then(result => {
-      res.status(201).json({
-        message: 'Post created!',
-        post,
-        creator: { _id: creator._id, name: creator.name }
-      })
-    })
-    .catch(err => {
-      if (!err.statusCode) {
-        err.statusCode = 500
-      }
-      next(err)
-    })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
 }
 
 exports.getPost = (req, res, next) => {
