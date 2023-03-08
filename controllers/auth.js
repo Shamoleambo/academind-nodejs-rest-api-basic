@@ -6,7 +6,7 @@ const User = require('../models/user')
 
 dotenv.config()
 
-exports.signup = (req, res, next) => {
+exports.signup = async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     const error = new Error('Validation Failed')
@@ -16,19 +16,16 @@ exports.signup = (req, res, next) => {
   }
   const { name, email, password } = { ...req.body }
 
-  bcrypt
-    .hash(password, 12)
-    .then(hashedPassword => {
-      const user = new User({ email, password: hashedPassword, name })
-      return user.save()
-    })
-    .then(result => {
-      res.status(201).json({ message: 'User created!', userId: result._id })
-    })
-    .catch(err => {
-      if (!err.statusCode) err.statusCode = 500
-      next(err)
-    })
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12)
+    const user = new User({ email, password: hashedPassword, name })
+    await user.save()
+
+    res.status(201).json({ message: 'User created!', userId: user._id })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
 }
 
 exports.login = async (req, res, next) => {
