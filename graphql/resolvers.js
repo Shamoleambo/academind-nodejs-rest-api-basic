@@ -121,5 +121,23 @@ module.exports = {
       createdAt: createdPost.createdAt.toLocaleString(),
       updatedAt: createdPost.updatedAt.toLocaleString()
     }
+  },
+  posts: async (args, req) => {
+    if (!req.isAuth) {
+      const error = new Error('Not Authenticated')
+      error.code = 401
+      throw error
+    }
+
+    const totalPosts = await Post.find().countDocuments()
+    const posts = await Post.find().sort({ createdAt: -1 }).populate('creator')
+    const formatedPosts = posts.map(post => ({
+      ...post._doc,
+      _id: post._id.toString(),
+      createdAt: post.createdAt.toLocaleString(),
+      updatedAt: post.updatedAt.toLocaleString()
+    }))
+
+    return { posts: formatedPosts, totalPosts }
   }
 }
