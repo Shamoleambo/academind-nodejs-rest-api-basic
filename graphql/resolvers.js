@@ -113,7 +113,7 @@ module.exports = {
 
     const createdPost = await post.save()
     user.posts.push(createdPost)
-    // await user.save()
+    await user.save()
 
     return {
       ...createdPost._doc,
