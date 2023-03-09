@@ -5,8 +5,6 @@ const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
 const multer = require('multer')
 const { v4: uuidv4 } = require('uuid')
-const feedRoutes = require('./routes/feed')
-const authRoutes = require('./routes/auth')
 
 dotenv.config()
 
@@ -43,9 +41,6 @@ app.use((req, res, next) => {
   next()
 })
 
-app.use('/feed', feedRoutes)
-app.use('/auth', authRoutes)
-
 app.use((error, req, res, next) => {
   console.log(error)
   const status = error.statusCode || 500
@@ -58,13 +53,8 @@ mongoose
   .connect(process.env.URI_MONGO_DB)
   .then(() => {
     console.log('Connected to the database')
-    const server = app.listen(8080, () => {
+    app.listen(8080, () => {
       console.log('Your app is running on port 8080')
-    })
-
-    const io = require('./socket').init(server)
-    io.on('connection', socket => {
-      console.log('Client connected')
     })
   })
   .catch(err => console.log(err))
