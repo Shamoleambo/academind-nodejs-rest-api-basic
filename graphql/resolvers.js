@@ -3,6 +3,7 @@ const validator = require('validator')
 const jwt = require('jsonwebtoken')
 const dotenv = require('dotenv')
 const User = require('../models/user')
+const Post = require('../models/post')
 
 dotenv.config()
 
@@ -65,5 +66,44 @@ module.exports = {
     )
 
     return { token, userId: user._id.toString() }
+  },
+  createPost: async ({ postInput }) => {
+    const { title, content, imageUrl } = { ...postInput }
+
+    const [emptyTitle, shortTitle] = [
+      validator.isEmpty(title),
+      !validator.isLength(title, { min: 4 })
+    ]
+    const [emptyContent, shortContent] = [
+      validator.isEmpty(content),
+      !validator.isLength(content, { min: 4 })
+    ]
+
+    const errors = []
+    if (emptyTitle || shortTitle) errors.push({ message: 'Title is invalid' })
+    if (emptyContent || shortContent)
+      errors.push({ message: 'Content is invalid' })
+
+    if (errors.length > 0) {
+      const error = new Error('Invalid input')
+      error.code = 422
+      error.data = errors
+      throw error
+    }
+
+    const post = new Post({
+      title,
+      content,
+      imageUrl
+    })
+
+    const createdPost = await post.save()
+
+    return {
+      ...createdPost._doc,
+      _id: createdPost._id.toString(),
+      createdAt: createdPost.createdAt.toLocaleString(),
+      updatedAt: createdPost.updatedAt.toLocaleString()
+    }
   }
 }
