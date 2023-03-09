@@ -5,6 +5,9 @@ const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
 const multer = require('multer')
 const { v4: uuidv4 } = require('uuid')
+const { graphqlHTTP } = require('express-graphql')
+const graphqlSchema = require('./graphql/schema')
+const graphqlResolver = require('./graphql/resolvers')
 
 dotenv.config()
 
@@ -40,6 +43,14 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   next()
 })
+
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: graphqlSchema,
+    rootValue: graphqlResolver
+  })
+)
 
 app.use((error, req, res, next) => {
   console.log(error)
