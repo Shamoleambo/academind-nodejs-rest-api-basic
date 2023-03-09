@@ -1,6 +1,7 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const path = require('path')
+const fs = require('fs')
 const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
 const multer = require('multer')
@@ -12,6 +13,10 @@ const auth = require('./middleware/auth')
 
 dotenv.config()
 
+const clearImage = filePath => {
+  fs.unlink(path.join(__dirname, '..', filePath), err => console.log(err))
+}
+
 const app = express()
 
 const fileStorage = multer.diskStorage({
@@ -19,7 +24,7 @@ const fileStorage = multer.diskStorage({
     cb(null, 'images')
   },
   filename: (req, file, cb) => {
-    cb(null, uuidv4())
+    cb(null, uuidv4() + '-' + file.originalname)
   }
 })
 const fileFilter = (req, file, cb) => {
@@ -47,6 +52,17 @@ app.use((req, res, next) => {
 })
 
 app.use(auth)
+app.put('/post-image', (req, res, next) => {
+  if (!req.isAuth) throw new Error('Not authenticated')
+  if (!req.file)
+    return res.status(200).json({ message: 'No image file provided' })
+
+  if (req.body.oldPath) clearImage(req.body.oldPath)
+
+  return res
+    .status(201)
+    .json({ message: 'File stored', filePath: req.file.path })
+})
 app.use(
   '/graphql',
   graphqlHTTP({
