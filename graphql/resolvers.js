@@ -67,7 +67,13 @@ module.exports = {
 
     return { token, userId: user._id.toString() }
   },
-  createPost: async ({ postInput }) => {
+  createPost: async ({ postInput }, req) => {
+    if (!req.isAuth) {
+      const error = new Error('Not Authenticated')
+      error.code = 401
+      throw error
+    }
+
     const { title, content, imageUrl } = { ...postInput }
 
     const [emptyTitle, shortTitle] = [
@@ -91,13 +97,23 @@ module.exports = {
       throw error
     }
 
+    const user = await User.findById(req.userId)
+    if (!user) {
+      const error = new Error('Invalid User')
+      error.code = 401
+      throw error
+    }
+
     const post = new Post({
       title,
       content,
-      imageUrl
+      imageUrl,
+      creator: user
     })
 
     const createdPost = await post.save()
+    user.posts.push(createdPost)
+    // await user.save()
 
     return {
       ...createdPost._doc,
