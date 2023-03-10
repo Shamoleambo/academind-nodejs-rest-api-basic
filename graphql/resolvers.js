@@ -261,5 +261,31 @@ module.exports = {
     }
 
     return { ...user._doc, _id: user._id.toString() }
+  },
+  updateStatus: async ({ status }, req) => {
+    if (!req.isAuth) {
+      const error = new Error('Not authenticated')
+      error.code = 401
+      throw error
+    }
+
+    const errors = []
+    const emptyStatus = validator.isEmpty(status)
+    const shortStatus = !validator.isLength(status, { min: 4 })
+    if (emptyStatus || shortStatus)
+      errors.push({ message: 'Status field must have a 4 characters minimum' })
+
+    if (errors.length > 0) {
+      const error = new Error('Invalid status field')
+      error.code = 422
+      error.data = errors
+      throw error
+    }
+
+    const user = await User.findById(req.userId)
+    user.status = status
+    await user.save()
+
+    return { ...user._doc, _id: user._id.toString() }
   }
 }
