@@ -14,7 +14,7 @@ const auth = require('./middleware/auth')
 dotenv.config()
 
 const clearImage = filePath => {
-  fs.unlink(path.join(__dirname, '..', filePath), err => console.log(err))
+  fs.unlink(path.join(__dirname, filePath), err => console.log(err))
 }
 
 const app = express()
